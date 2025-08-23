@@ -1,0 +1,58 @@
+name: Deploy to Server
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js app
+        run: npm run build
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            # Get commit hash for tagging
+            COMMIT_HASH=$(git rev-parse HEAD)
+            SHORT_HASH=$(echo $COMMIT_HASH | cut -c1-7)
+
+            # Navigate to project directory
+            cd /nextjs
+
+            # Build new Docker image with commit hash
+            docker build -t finance-dashboard:$SHORT_HASH .
+
+            # Stop current container (if running)
+            docker stop finance-dashboard-current || true
+            docker rm finance-dashboard-current || true
+
+            # Start new container with commit hash
+            docker run -d \
+              --name finance-dashboard-current \
+              --restart unless-stopped \
+              -p 3000:3000 \
+              finance-dashboard:$SHORT_HASH
+
+            # Cleanup old images (keep last 5)
+            docker images finance-dashboard --format "table {{.Tag}}\t{{.CreatedAt}}" | tail -n +6 | awk '{print $1}' | xargs -r docker rmi || true
+
+            # Show current deployment
+            echo "Deployed: finance-dashboard:$SHORT_HASH"
+            docker ps | grep finance-dashboard
