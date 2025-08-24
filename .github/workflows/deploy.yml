@@ -74,30 +74,10 @@ jobs:
             echo "Updated docker-compose.yml:"
             grep "image:" docker-compose.yml
 
-            # Restart services
-            docker compose down
-            sleep 2
-
-            # Check if containers are actually down (max 5 attempts)
-            ATTEMPTS=0
-            while docker ps | grep -q "finance-dashboard" && [ $ATTEMPTS -lt 5 ]; do
-              echo "Waiting for containers to stop completely... (attempt $((ATTEMPTS + 1))/5)"
-              sleep 2
-              ATTEMPTS=$((ATTEMPTS + 1))
-            done
-
-            if [ $ATTEMPTS -eq 5 ]; then
-              echo "WARNING: Containers may not have stopped completely after 5 attempts"
-            fi
-
-            echo "All containers stopped, starting new ones..."
+            echo "Starting containers..."
             docker compose up -d
 
-            # Show running containers
-            echo "Running containers:"
-            docker ps
-
-            # Cleanup old images (keep last 5)
-            docker images ghcr.io/${{ secrets.REPO_USER }}/finance-dashboard --format "table {{.Tag}}\t{{.CreatedAt}}" | tail -n +6 | awk '{print $1}' | xargs -r docker rmi || true
+            # Cleanup old images (keep last 3)
+            docker images ghcr.io/${{ secrets.REPO_USER }}/finance-dashboard --format "table {{.Tag}}\t{{.CreatedAt}}" | tail -n +4 | awk '{print $1}' | xargs -r docker rmi || true
 
             echo "Deployment completed successfully!"
