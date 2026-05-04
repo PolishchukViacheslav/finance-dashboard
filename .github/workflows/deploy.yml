@@ -60,23 +60,27 @@ jobs:
     steps:
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.HOST_USERNAME }}
           key: ${{ secrets.HOST_SSH_KEY }}
+          script_stop: true
+          envs: GHCR_PULL_TOKEN
           script: |
 
-            # Navigate to app directory
+            set -euo pipefail
+
             cd ${{ secrets.SERVER_APP_DIR }}
 
-            # Get short hash from build job
             SHORT_HASH="${{ needs.build-and-push.outputs.short-sha }}"
             echo "SHORT_HASH: $SHORT_HASH"
 
-            # Pull the Docker image (GITHUB_USERNAME in server .env must match this owner, lowercased)
+            echo "$GHCR_PULL_TOKEN" | docker login ghcr.io -u ${{ needs.build-and-push.outputs.image-owner-lc }} --password-stdin
+
             docker pull ghcr.io/${{ needs.build-and-push.outputs.image-owner-lc }}/finance-dashboard:$SHORT_HASH
 
-            # Update .env file with new commit ID
             if sed -i "s|COMMIT_ID=.*|COMMIT_ID=$SHORT_HASH|" .env; then
               echo ".env updated successfully with COMMIT_ID=$SHORT_HASH"
             else
@@ -84,14 +88,12 @@ jobs:
               exit 1
             fi
 
-            # Show the updated .env
             echo "Updated .env file:"
             grep "COMMIT_ID=" .env
 
             echo "Starting containers with new image..."
             make up
 
-            # Cleanup old images (keep last 3)
             docker images ghcr.io/${{ needs.build-and-push.outputs.image-owner-lc }}/finance-dashboard --format "{{.Repository}}:{{.Tag}}" --filter "dangling=false" | tail -n +4
 
             echo "Deployment completed successfully!"
