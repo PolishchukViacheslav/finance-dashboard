@@ -1,33 +1,41 @@
 {
-	"name": "finance-dashboard",
-	"version": "0.1.0",
-	"private": true,
-	"scripts": {
-		"dev": "next dev --turbopack",
-		"build": "next build --turbopack",
-		"start": "next start",
-		"lint": "eslint"
-	},
-	"dependencies": {
-		"@radix-ui/react-slot": "^1.2.3",
-		"class-variance-authority": "^0.7.1",
-		"clsx": "^2.1.1",
-		"lucide-react": "^0.541.0",
-		"next": "15.5.0",
-		"react": "19.1.0",
-		"react-dom": "19.1.0",
-		"tailwind-merge": "^3.3.1"
-	},
-	"devDependencies": {
-		"@eslint/eslintrc": "^3",
-		"@tailwindcss/postcss": "^4",
-		"@types/node": "^20",
-		"@types/react": "^19",
-		"@types/react-dom": "^19",
-		"eslint": "^9",
-		"eslint-config-next": "15.5.0",
-		"tailwindcss": "^4",
-		"tw-animate-css": "^1.3.7",
-		"typescript": "^5"
-	}
+  "name": "finance-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build && tsc --noEmit",
+    "start": "node .output/server/index.mjs",
+    "preview": "vite preview",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write ."
+  },
+  "dependencies": {
+    "@radix-ui/react-slot": "^1.2.3",
+    "@tanstack/react-router": "^1.169.1",
+    "@tanstack/react-router-devtools": "^1.166.13",
+    "@tanstack/react-start": "^1.167.62",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.541.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwind-merge": "^3.3.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.11",
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^6.0.1",
+    "nitro": "^3.0.260311-beta",
+    "tailwindcss": "^4.2.2",
+    "tw-animate-css": "^1.3.7",
+    "typescript": "^5.7.3",
+    "vite": "^8.0.0"
+  }
 }
